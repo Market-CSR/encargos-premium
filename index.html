@@ -60,6 +60,21 @@
             box-shadow: 0 0 0 1px var(--gold-primary);
         }
 
+        /* --- MEJORA DE CONTRASTE PARA SELECT/OPTIONS --- */
+        select.input-premium {
+            /* Asegura que el texto seleccionado sea blanco */
+            color: #FFFFFF; 
+            background-color: rgba(30, 41, 59, 0.8); /* Slate 800 semi-transparent */
+        }
+
+        /* Estilo específico para las opciones desplegadas */
+        select option {
+            background-color: #F1F5F9; /* Slate 100 - Fondo Claro */
+            color: #0F172A; /* Slate 900 - Texto Oscuro */
+            font-weight: 600; /* Texto más grueso para legibilidad */
+            padding: 12px;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -157,7 +172,7 @@
                                 <label class="block text-white text-sm font-bold uppercase tracking-wide mb-2">Plataforma</label>
                                 <div class="relative">
                                     <i data-lucide="gamepad-2" class="absolute left-4 top-3.5 text-gold w-5 h-5"></i>
-                                    <select required name="platform" class="w-full input-premium rounded-lg p-3 pl-12 text-base appearance-none cursor-pointer text-white bg-slate-800">
+                                    <select required name="platform" class="w-full input-premium rounded-lg p-3 pl-12 text-base appearance-none cursor-pointer">
                                         <option value="" disabled selected>Seleccionar Sistema</option>
                                         <option value="NES">Nintendo NES</option>
                                         <option value="SNES">Super Nintendo</option>
@@ -181,7 +196,7 @@
                                 <label class="block text-white text-sm font-bold uppercase tracking-wide mb-2">Condición Deseada</label>
                                 <div class="relative">
                                     <i data-lucide="shield-check" class="absolute left-4 top-3.5 text-gold w-5 h-5"></i>
-                                    <select required name="condition" class="w-full input-premium rounded-lg p-3 pl-12 text-base appearance-none cursor-pointer text-white bg-slate-800">
+                                    <select required name="condition" class="w-full input-premium rounded-lg p-3 pl-12 text-base appearance-none cursor-pointer">
                                         <option value="" disabled selected>Seleccionar Estado</option>
                                         <option value="Precintado">Precintado / Nuevo</option>
                                         <option value="CIB">Completo en Caja (CIB)</option>
@@ -424,7 +439,7 @@
             const pass = document.getElementById('admin-password').value;
             const errorMsg = document.getElementById('login-error');
             
-            if(pass === '039415') {
+            if(pass === 'admin123') {
                 switchView('admin-dashboard');
             } else {
                 errorMsg.innerText = 'CLAVE INCORRECTA';
@@ -434,59 +449,4 @@
 
         function getStatusBadgeClass(status) {
             switch(status) {
-                case 'Pendiente': return 'bg-gray-700 text-white border-gray-500';
-                case 'En Búsqueda Activa': return 'bg-blue-800 text-white border-blue-400 font-bold';
-                case 'Localizado/Negociando': return 'bg-purple-800 text-white border-purple-400';
-                case 'Conseguido (Contactar Cliente)': return 'bg-green-800 text-white border-green-400';
-                case 'Cerrado/No Encontrado': return 'bg-red-900 text-white border-red-500';
-                default: return 'bg-gray-700 text-white';
-            }
-        }
-
-        function renderDashboard() {
-            const db = getDB();
-            const tbody = document.getElementById('commissions-table-body');
-            tbody.innerHTML = '';
-
-            if(db.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 italic">No hay encargos registrados.</td></tr>`;
-                return;
-            }
-
-            db.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800 transition-colors group border-b border-slate-700 last:border-0';
-                
-                const notesHtml = item.notes ? `<div class="text-xs text-slate-400 mt-1 max-w-xs truncate font-normal italic" title="${item.notes}">Nota: ${item.notes}</div>` : '';
-
-                tr.innerHTML = `
-                    <td class="p-4 text-slate-400 text-sm whitespace-nowrap">${item.createdAt}</td>
-                    <td class="p-4 text-white font-bold text-lg">${item.itemName} ${notesHtml}</td>
-                    <td class="p-4 text-slate-300 font-medium">${item.platform}</td>
-                    <td class="p-4 text-slate-300">${item.condition}</td>
-                    <td class="p-4 text-[#D4AF37] font-bold text-right text-lg">${item.budget} €</td>
-                    <td class="p-4 text-blue-300 font-medium text-sm underline"><a href="mailto:${item.email}">${item.email}</a></td>
-                    <td class="p-4">
-                        <select onchange="updateCommissionStatus('${item.id}', this.value)" class="text-xs rounded p-1 outline-none shadow-sm uppercase tracking-wider ${getStatusBadgeClass(item.status)}">
-                            <option value="Pendiente" ${item.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                            <option value="En Búsqueda Activa" ${item.status === 'En Búsqueda Activa' ? 'selected' : ''}>Buscando</option>
-                            <option value="Localizado/Negociando" ${item.status === 'Localizado/Negociando' ? 'selected' : ''}>Negociando</option>
-                            <option value="Conseguido (Contactar Cliente)" ${item.status === 'Conseguido (Contactar Cliente)' ? 'selected' : ''}>Conseguido</option>
-                            <option value="Cerrado/No Encontrado" ${item.status === 'Cerrado/No Encontrado' ? 'selected' : ''}>Cerrado</option>
-                        </select>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteCommission('${item.id}')" class="text-slate-500 hover:text-red-500 transition-colors p-2 hover:bg-red-900/20 rounded">
-                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            
-            // Re-renderizar iconos nuevos
-            lucide.createIcons();
-        }
-    </script>
-</body>
-</html>
+                case 'Pendiente
